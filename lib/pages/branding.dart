@@ -8,7 +8,7 @@ class BrandingPage extends StatelessWidget {
     return Scaffold(
       backgroundColor: const Color(0xFFF6F6FF),
       appBar: AppBar(
-        title: const Text('Branding & sammanställning'),
+        title: const Text('Branding & eller sammanställning'),
         actions: [
           IconButton(
             icon: const Icon(Icons.menu),
