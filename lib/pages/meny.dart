@@ -1,6 +1,6 @@
 import 'package:antsinthepants/pages/branding.dart';
-import 'package:antsinthepants/pages/builder.dart';
 import 'package:antsinthepants/pages/package.dart';
+import 'package:antsinthepants/pages/builder.dart';
 import 'package:antsinthepants/pages/send.dart';
 import 'package:antsinthepants/pages/template.dart';
 import 'package:flutter/material.dart';
@@ -15,21 +15,18 @@ class _MainShellState extends State<MainShell> {
   int _index = 0;
 
   late final List<Widget> _pages = const [
-  BrandingPage(),
-  StartNewOfferPage(),
-  BuildPackagePage(),
-  ExportSendPage(),
-  TemplateLibraryPage(),
+    BrandingPage(),
+    StartNewOfferPage(),
+    BuildPackagePage(),
+    ExportSendPage(),
+    TemplateLibraryPage(),
     Center(child: Text('Settings Page')),
   ];
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: IndexedStack(
-        index: _index,
-        children: _pages,
-      ),
+      body: IndexedStack(index: _index, children: _pages),
       bottomNavigationBar: NavigationBar(
         selectedIndex: _index,
         onDestinationSelected: (i) => setState(() => _index = i),
