@@ -1,23 +1,9 @@
 import 'package:flutter/material.dart';
-
-class Module {
-  final String name;
-  final String category;
-  final double price;
-  Module(this.name, this.category, this.price);
-}
-
-final List<Module> allModules = [
-  Module('Bergsklättring', 'Aktiviteter', 1200),
-  Module('Åka släde', 'Aktiviteter', 800),
-  Module('Middag på restaurang', 'Mat', 350),
-  Module('Grillbuffé', 'Mat', 250),
-  Module('Flyg', 'Transport', 2500),
-  Module('Tåg', 'Transport', 900),
-];
+import 'package:antsinthepants/models/models.dart';
 
 class BuildPackagePage extends StatefulWidget {
-  const BuildPackagePage({super.key});
+  final Booking? editingBooking;
+  const BuildPackagePage({super.key, this.editingBooking});
 
   @override
   State<BuildPackagePage> createState() => _BuildPackagePageState();
@@ -35,6 +21,47 @@ class _BuildPackagePageState extends State<BuildPackagePage> {
   List<Module> get allAvailableModules => [...allModules, ...userModules];
 
   @override
+  void initState() {
+    super.initState();
+    if (widget.editingBooking != null) {
+      selectedModules.addAll(widget.editingBooking!.modules);
+      if (selectedModules.isNotEmpty) {
+        selectedCategory = selectedModules.first.category;
+      }
+    }
+  }
+
+  Future<String?> _askOfferName() => showDialog<String>(
+    context: context,
+    builder: (context) {
+      String name = '';
+      return AlertDialog(
+        title: const Text('Namn på offert'),
+        content: TextField(
+          autofocus: true,
+          decoration: const InputDecoration(
+            hintText: 'Exempel: Weekend med helikoptertur',
+          ),
+          onChanged: (v) => name = v,
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Avbryt'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              final val = name.trim();
+              if (val.isNotEmpty) Navigator.pop(context, val);
+            },
+            child: const Text('Spara'),
+          ),
+        ],
+      );
+    },
+  );
+
+  @override
   Widget build(BuildContext context) {
     final modules = allAvailableModules
         .where((m) => m.category == selectedCategory)
@@ -43,12 +70,13 @@ class _BuildPackagePageState extends State<BuildPackagePage> {
     return Scaffold(
       backgroundColor: const Color(0xFFF9F9F9),
       appBar: AppBar(
-        title: const Text('Bygg paket'),
+        title: Text(
+          widget.editingBooking != null ? 'Redigera paket' : 'Bygg paket',
+        ),
         actions: [IconButton(icon: const Icon(Icons.menu), onPressed: () {})],
       ),
       body: Row(
         children: [
-          // Kategorilista
           NavigationRail(
             selectedIndex: categories.indexOf(selectedCategory),
             onDestinationSelected: (index) {
@@ -112,12 +140,10 @@ class _BuildPackagePageState extends State<BuildPackagePage> {
               ),
             ),
           ),
-          VerticalDivider(width: 1),
-          // Modulbibliotek och valda moduler
+          const VerticalDivider(width: 1),
           Expanded(
             child: Column(
               children: [
-                // Lägg till modul-knapp
                 Padding(
                   padding: const EdgeInsets.all(8.0),
                   child: Row(
@@ -193,7 +219,6 @@ class _BuildPackagePageState extends State<BuildPackagePage> {
                     ],
                   ),
                 ),
-                // Modulbibliotek
                 Expanded(
                   child: ListView(
                     children: modules.map((module) {
@@ -216,7 +241,6 @@ class _BuildPackagePageState extends State<BuildPackagePage> {
                     }).toList(),
                   ),
                 ),
-                // Valda moduler
                 Container(
                   color: Colors.grey[200],
                   padding: const EdgeInsets.all(8),
@@ -248,14 +272,48 @@ class _BuildPackagePageState extends State<BuildPackagePage> {
                       ElevatedButton(
                         onPressed: selectedModules.isEmpty
                             ? null
-                            : () {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text('Offert skickad!'),
-                                  ),
-                                );
+                            : () async {
+                                if (widget.editingBooking != null) {
+                                  final updated = Booking(
+                                    id: widget.editingBooking!.id,
+                                    reference: widget.editingBooking!.reference,
+                                    customerName:
+                                        widget.editingBooking!.customerName,
+                                    date: widget.editingBooking!.date,
+                                    status: widget.editingBooking!.status,
+                                    notes: widget.editingBooking!.notes,
+                                    modules: List.from(selectedModules),
+                                    title: widget.editingBooking!.title,
+                                  );
+                                  Navigator.pop(context, updated);
+                                } else {
+                                  final name = await _askOfferName();
+                                  if (name == null) return;
+                                  final newBooking = Booking(
+                                    id: DateTime.now().millisecondsSinceEpoch
+                                        .toString(),
+                                    reference:
+                                        'ANT-${DateTime.now().year}-${DateTime.now().millisecondsSinceEpoch % 100000}',
+                                    title: name,
+                                    customerName:
+                                        name, // prototyp: använder samma fält för visning
+                                    date: DateTime.now(),
+                                    status: 'Utkast',
+                                    modules: List.from(selectedModules),
+                                  );
+                                  mockBookings.insert(0, newBooking);
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text('Offert sparad som utkast'),
+                                    ),
+                                  );
+                                }
                               },
-                        child: const Text('Skicka offert'),
+                        child: Text(
+                          widget.editingBooking != null
+                              ? 'Spara ändringar'
+                              : 'Spara offert',
+                        ),
                       ),
                     ],
                   ),
