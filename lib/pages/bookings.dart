@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:antsinthepants/models/models.dart';
 import 'package:antsinthepants/pages/builder.dart';
+import 'package:antsinthepants/pages/quote_templates.dart';
 
 class BookingsPage extends StatefulWidget {
   const BookingsPage({super.key});
@@ -67,7 +68,7 @@ class _BookingsPageState extends State<BookingsPage> {
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: Text('$label - ange e‑post'),
+          title: Text('$label - ange epost'),
           content: TextField(
             autofocus: true,
             decoration: const InputDecoration(
@@ -123,9 +124,46 @@ class _BookingsPageState extends State<BookingsPage> {
             ListTile(
               leading: const Icon(Icons.send),
               title: const Text('Skicka offert'),
-              onTap: () {
+              onTap: () async {
                 Navigator.pop(context);
-                _askSendEmailAndSetStatus(b, 'Skickad', 'Offert');
+                // Ask which template to use
+                // Capture a local context to avoid using the widget context after async gaps
+                final c = context;
+                final theme = await showModalBottomSheet<QuoteTheme>(
+                  context: c,
+                  builder: (_) => SafeArea(
+                    child: Wrap(
+                      children: [
+                        ListTile(
+                          leading: const Icon(Icons.ac_unit),
+                          title: const Text('Vintermall (ljusblå)'),
+                          onTap: () => Navigator.pop(c, QuoteTheme.winter),
+                        ),
+                        ListTile(
+                          leading: const Icon(Icons.wb_sunny),
+                          title: const Text('Sommarmall (grön)'),
+                          onTap: () => Navigator.pop(c, QuoteTheme.summer),
+                        ),
+                        ListTile(
+                          leading: const Icon(Icons.close),
+                          title: const Text('Avbryt'),
+                          onTap: () => Navigator.pop(c, null),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+                if (theme == null) return;
+                // Show preview and ask to confirm sending
+                final sent = await Navigator.of(c).push<bool>(
+                  MaterialPageRoute(
+                    builder: (_) => QuotePreviewPage(booking: b, theme: theme),
+                  ),
+                );
+                if (sent == true) {
+                  // Ask for email and set status
+                  await _askSendEmailAndSetStatus(b, 'Skickad', 'Offert');
+                }
               },
             ),
             ListTile(
