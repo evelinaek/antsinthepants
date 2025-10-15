@@ -3,6 +3,8 @@ class Module {
   final String category;
   final double price;
   Module(this.name, this.category, this.price);
+
+  get description => null;
 }
 
 final List<Module> allModules = [
