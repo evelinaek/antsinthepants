@@ -31,35 +31,50 @@ class _BuildPackagePageState extends State<BuildPackagePage> {
     }
   }
 
-  Future<String?> _askOfferName() => showDialog<String>(
-    context: context,
-    builder: (context) {
-      String name = '';
-      return AlertDialog(
-        title: const Text('Namn på offert'),
-        content: TextField(
-          autofocus: true,
-          decoration: const InputDecoration(
-            hintText: 'Exempel: Weekend med helikoptertur',
-          ),
-          onChanged: (v) => name = v,
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Avbryt'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              final val = name.trim();
-              if (val.isNotEmpty) Navigator.pop(context, val);
-            },
-            child: const Text('Spara'),
-          ),
-        ],
+  Future<Map<String, String>?> _askOfferName() => showDialog<Map<String, String>>(
+        context: context,
+        builder: (context) {
+          String title = '';
+          String customer = '';
+          return AlertDialog(
+            title: const Text('Titel på offert & Kundnamn'),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextField(
+                  autofocus: true,
+                  decoration: const InputDecoration(
+                    labelText: 'Titel på offert',
+                    hintText: 'Exempel: Weekend med helikoptertur',
+                  ),
+                  onChanged: (v) => title = v,
+                ),
+                TextField(
+                  decoration: const InputDecoration(
+                    labelText: 'Kundnamn',
+                    hintText: 'Kundens namn',
+                  ),
+                  onChanged: (v) => customer = v,
+                ),
+              ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('Avbryt'),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  final t = title.trim();
+                  final c = customer.trim();
+                  if (t.isNotEmpty && c.isNotEmpty) Navigator.pop(context, {'title': t, 'customer': c});
+                },
+                child: const Text('Spara'),
+              ),
+            ],
+          );
+        },
       );
-    },
-  );
 
   @override
   Widget build(BuildContext context) {
@@ -287,16 +302,13 @@ class _BuildPackagePageState extends State<BuildPackagePage> {
                                   );
                                   Navigator.pop(context, updated);
                                 } else {
-                                  final name = await _askOfferName();
-                                  if (name == null) return;
+                                  final vals = await _askOfferName();
+                                  if (vals == null) return;
                                   final newBooking = Booking(
-                                    id: DateTime.now().millisecondsSinceEpoch
-                                        .toString(),
-                                    reference:
-                                        'ANT-${DateTime.now().year}-${DateTime.now().millisecondsSinceEpoch % 100000}',
-                                    title: name,
-                                    customerName:
-                                        name, // prototyp: använder samma fält för visning
+                                    id: DateTime.now().millisecondsSinceEpoch.toString(),
+                                    reference: 'ANT-${DateTime.now().year}-${DateTime.now().millisecondsSinceEpoch % 100000}',
+                                    title: vals['title'] ?? '',
+                                    customerName: vals['customer'] ?? '',
                                     date: DateTime.now(),
                                     status: 'Utkast',
                                     modules: List.from(selectedModules),
