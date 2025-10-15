@@ -12,12 +12,6 @@ class ExportSendPage extends StatelessWidget {
       backgroundColor: const Color(0xFFFFF7F2),
       appBar: AppBar(
         title: const Text('Export & utskick'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.menu),
-            onPressed: () {}, // gemensam burgarmeny-knapp (placeholder)
-          ),
-        ],
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),

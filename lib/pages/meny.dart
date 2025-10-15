@@ -1,5 +1,5 @@
 import 'package:antsinthepants/pages/branding.dart';
-import 'package:antsinthepants/pages/package.dart';
+import 'package:antsinthepants/pages/start.dart';
 import 'package:antsinthepants/pages/builder.dart';
 import 'package:antsinthepants/pages/send.dart';
 import 'package:antsinthepants/pages/bookings.dart';
@@ -16,7 +16,7 @@ class _MainShellState extends State<MainShell> {
 
   // Ordningen här måste matcha NavigationDestination-ordningen nedan:
   late final List<Widget> _pages = [
-    StartNewOfferPage(), // Start (index 0)
+    DashboardPage(), // Start (index 0)
     BrandingPage(), // Branding (index 1)
     BuildPackagePage(), // Bygg (index 2)
     BookingsPage(), // Bokningar (index 3)
@@ -29,41 +29,47 @@ class _MainShellState extends State<MainShell> {
     return Scaffold(
       // IndexedStack bevarar state i varje flik och visar rätt sida per index
       body: IndexedStack(index: _index, children: _pages),
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: _index,
-        onDestinationSelected: (i) => setState(() => _index = i),
-        destinations: const [
-          NavigationDestination(
-            icon: Icon(Icons.playlist_add_outlined),
-            selectedIcon: Icon(Icons.playlist_add),
-            label: 'Start',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.brush_outlined),
-            selectedIcon: Icon(Icons.brush),
-            label: 'Branding',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.view_quilt_outlined),
-            selectedIcon: Icon(Icons.view_quilt),
-            label: 'Bygg',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.list_alt_outlined),
-            selectedIcon: Icon(Icons.list_alt),
-            label: 'Bokningar',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.ios_share_outlined),
-            selectedIcon: Icon(Icons.ios_share),
-            label: 'Export',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.settings_outlined),
-            selectedIcon: Icon(Icons.settings),
-            label: 'Inställningar',
-          ),
-        ],
+      bottomNavigationBar: NavigationBarTheme(
+        data: NavigationBarThemeData(
+          // Minska textstorleken så etiketten inte blir två rader
+          labelTextStyle: MaterialStatePropertyAll(const TextStyle(fontSize: 11)),
+        ),
+        child: NavigationBar(
+          selectedIndex: _index,
+          onDestinationSelected: (i) => setState(() => _index = i),
+          destinations: const [
+            NavigationDestination(
+              icon: Icon(Icons.playlist_add_outlined),
+              selectedIcon: Icon(Icons.playlist_add),
+              label: 'Start',
+            ),
+            NavigationDestination(
+              icon: Icon(Icons.brush_outlined),
+              selectedIcon: Icon(Icons.brush),
+              label: 'Branding',
+            ),
+            NavigationDestination(
+              icon: Icon(Icons.view_quilt_outlined),
+              selectedIcon: Icon(Icons.view_quilt),
+              label: 'Bygg',
+            ),
+            NavigationDestination(
+              icon: Icon(Icons.list_alt_outlined),
+              selectedIcon: Icon(Icons.list_alt),
+              label: 'Bokningar',
+            ),
+            NavigationDestination(
+              icon: Icon(Icons.ios_share_outlined),
+              selectedIcon: Icon(Icons.ios_share),
+              label: 'Export',
+            ),
+            NavigationDestination(
+              icon: Icon(Icons.settings_outlined),
+              selectedIcon: Icon(Icons.settings),
+              label: 'Inställningar',
+            ),
+          ],
+        ),
       ),
     );
   }

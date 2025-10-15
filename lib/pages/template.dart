@@ -9,12 +9,6 @@ class TemplateLibraryPage extends StatelessWidget {
       backgroundColor: const Color(0xFFF2FFF8),
       appBar: AppBar(
         title: const Text('Mallbibliotek'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.menu),
-            onPressed: () {}, // gemensam burgarmeny-knapp (placeholder)
-          ),
-        ],
       ),
       body: const Center(
         child: Text('Placeholder: Mallbibliotek'),

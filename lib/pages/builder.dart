@@ -88,7 +88,6 @@ class _BuildPackagePageState extends State<BuildPackagePage> {
         title: Text(
           widget.editingBooking != null ? 'Redigera paket' : 'Bygg paket',
         ),
-        actions: [IconButton(icon: const Icon(Icons.menu), onPressed: () {})],
       ),
       body: Row(
         children: [

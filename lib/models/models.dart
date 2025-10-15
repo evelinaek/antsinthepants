@@ -45,7 +45,7 @@ final List<Booking> mockBookings = [
   Booking(
     id: '1',
     reference: 'ANT-2025-001',
-    title: 'Solo resa i oktober med helikoptertur',
+    title: 'Soloresa med helikoptertur',
     customerName: 'Erik Svensson',
     date: DateTime(2025, 10, 01),
     status: 'Skickad',
@@ -64,7 +64,7 @@ final List<Booking> mockBookings = [
   Booking(
     id: '3',
     reference: 'ANT-2025-003',
-    title: 'Weekend September för familjen Johansson',
+    title: 'Aktiv weekend för familjen Johansson',
     customerName: 'Resebyrån AB',
     date: DateTime(2025, 09, 05),
     status: 'Bekräftad',
