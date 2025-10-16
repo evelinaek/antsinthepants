@@ -39,7 +39,8 @@ class _BuildPackagePageState extends State<BuildPackagePage> {
     });
   }
 
-  Future<Map<String, String>?> _askOfferName() => showDialog<Map<String, String>>(
+  Future<Map<String, String>?> _askOfferName() =>
+      showDialog<Map<String, String>>(
         context: context,
         builder: (context) {
           String title = '';
@@ -125,6 +126,58 @@ class _BuildPackagePageState extends State<BuildPackagePage> {
                   ),
                 )
                 .toList(),
+            // knapp för att lägga till kategori i sidobaren
+            trailing: Padding(
+              padding: const EdgeInsets.only(bottom: 12.0),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.add),
+                    tooltip: 'Lägg till kategori',
+                    onPressed: () async {
+                      String temp = '';
+                      final newCategory = await showDialog<String>(
+                        context: context,
+                        builder: (context) {
+                          return AlertDialog(
+                            title: const Text('Ny kategori'),
+                            content: TextField(
+                              autofocus: true,
+                              decoration: const InputDecoration(
+                                labelText: 'Kategorinamn',
+                              ),
+                              onChanged: (v) => temp = v,
+                            ),
+                            actions: [
+                              TextButton(
+                                onPressed: () => Navigator.pop(context),
+                                child: const Text('Avbryt'),
+                              ),
+                              ElevatedButton(
+                                onPressed: () {
+                                  final val = temp.trim();
+                                  if (val.isNotEmpty &&
+                                      !categories.contains(val))
+                                    Navigator.pop(context, val);
+                                },
+                                child: const Text('Lägg till'),
+                              ),
+                            ],
+                          );
+                        },
+                      );
+                      if (newCategory != null) {
+                        setState(() {
+                          userCategories.add(newCategory);
+                          selectedCategory = newCategory;
+                        });
+                      }
+                    },
+                  ),
+                ],
+              ),
+            ),
           ),
           const VerticalDivider(width: 1, thickness: 1),
           Expanded(
@@ -139,7 +192,7 @@ class _BuildPackagePageState extends State<BuildPackagePage> {
                       color: Colors.black.withOpacity(0.05),
                       blurRadius: 6,
                       offset: const Offset(0, 2),
-                    )
+                    ),
                   ],
                 ),
                 child: Column(
@@ -147,15 +200,19 @@ class _BuildPackagePageState extends State<BuildPackagePage> {
                   children: [
                     // Add module button
                     Padding(
-                      padding:
-                          const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 8,
+                      ),
                       child: ElevatedButton.icon(
                         icon: const Icon(Icons.add),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.deepPurple[400],
                           foregroundColor: Colors.white,
                           padding: const EdgeInsets.symmetric(
-                              vertical: 12, horizontal: 20),
+                            vertical: 12,
+                            horizontal: 20,
+                          ),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(10),
                           ),
@@ -198,14 +255,18 @@ class _BuildPackagePageState extends State<BuildPackagePage> {
                                   ElevatedButton(
                                     onPressed: () {
                                       final price = double.tryParse(
-                                          prisText.replaceAll(',', '.'));
+                                        prisText.replaceAll(',', '.'),
+                                      );
                                       if (modulNamn.trim().isNotEmpty &&
                                           price != null &&
                                           price > 0) {
                                         Navigator.pop(
                                           context,
-                                          Module(modulNamn.trim(),
-                                              selectedCategory, price),
+                                          Module(
+                                            modulNamn.trim(),
+                                            selectedCategory,
+                                            price,
+                                          ),
                                         );
                                       }
                                     },
@@ -248,8 +309,10 @@ class _BuildPackagePageState extends State<BuildPackagePage> {
                             ),
                             child: ListTile(
                               dense: true,
-                              visualDensity:
-                                  const VisualDensity(vertical: -2, horizontal: -1),
+                              visualDensity: const VisualDensity(
+                                vertical: -2,
+                                horizontal: -1,
+                              ),
                               title: Text(
                                 '${module.name} (${module.price.toStringAsFixed(0)} kr)',
                                 style: const TextStyle(
@@ -258,8 +321,11 @@ class _BuildPackagePageState extends State<BuildPackagePage> {
                                 ),
                               ),
                               trailing: isSelected
-                                  ? const Icon(Icons.check,
-                                      color: Colors.green, size: 20)
+                                  ? const Icon(
+                                      Icons.check,
+                                      color: Colors.green,
+                                      size: 20,
+                                    )
                                   : IconButton(
                                       icon: const Icon(Icons.add, size: 20),
                                       onPressed: () {
@@ -268,14 +334,17 @@ class _BuildPackagePageState extends State<BuildPackagePage> {
                                         });
                                         // Hoppa automatiskt till botten
                                         Future.delayed(
-                                            const Duration(milliseconds: 100),
-                                            () {
-                                          if (_scrollController.hasClients) {
-                                            _scrollController.jumpTo(
+                                          const Duration(milliseconds: 100),
+                                          () {
+                                            if (_scrollController.hasClients) {
+                                              _scrollController.jumpTo(
                                                 _scrollController
-                                                    .position.maxScrollExtent);
-                                          }
-                                        });
+                                                    .position
+                                                    .maxScrollExtent,
+                                              );
+                                            }
+                                          },
+                                        );
                                       },
                                     ),
                             ),
@@ -289,7 +358,8 @@ class _BuildPackagePageState extends State<BuildPackagePage> {
                       decoration: BoxDecoration(
                         color: Colors.grey[100],
                         borderRadius: const BorderRadius.vertical(
-                            bottom: Radius.circular(16)),
+                          bottom: Radius.circular(16),
+                        ),
                       ),
                       padding: const EdgeInsets.all(10),
                       child: ConstrainedBox(
@@ -320,13 +390,17 @@ class _BuildPackagePageState extends State<BuildPackagePage> {
                                         (m) => Chip(
                                           labelPadding:
                                               const EdgeInsets.symmetric(
-                                                  horizontal: 6),
+                                                horizontal: 6,
+                                              ),
                                           materialTapTargetSize:
                                               MaterialTapTargetSize.shrinkWrap,
-                                          labelStyle:
-                                              const TextStyle(fontSize: 12),
+                                          labelStyle: const TextStyle(
+                                            fontSize: 12,
+                                          ),
                                           visualDensity: const VisualDensity(
-                                              vertical: -3, horizontal: -3),
+                                            vertical: -3,
+                                            horizontal: -3,
+                                          ),
                                           label: Text(
                                             '${m.name} (${m.price.toStringAsFixed(0)} kr)',
                                           ),
@@ -348,17 +422,19 @@ class _BuildPackagePageState extends State<BuildPackagePage> {
                                             final updated = Booking(
                                               id: widget.editingBooking!.id,
                                               reference: widget
-                                                  .editingBooking!.reference,
+                                                  .editingBooking!
+                                                  .reference,
                                               customerName: widget
-                                                  .editingBooking!.customerName,
-                                              date:
-                                                  widget.editingBooking!.date,
-                                              status: widget
-                                                  .editingBooking!.status,
+                                                  .editingBooking!
+                                                  .customerName,
+                                              date: widget.editingBooking!.date,
+                                              status:
+                                                  widget.editingBooking!.status,
                                               notes:
                                                   widget.editingBooking!.notes,
-                                              modules:
-                                                  List.from(selectedModules),
+                                              modules: List.from(
+                                                selectedModules,
+                                              ),
                                               title:
                                                   widget.editingBooking!.title,
                                             );
@@ -377,15 +453,18 @@ class _BuildPackagePageState extends State<BuildPackagePage> {
                                                   vals['customer'] ?? '',
                                               date: DateTime.now(),
                                               status: 'Utkast',
-                                              modules:
-                                                  List.from(selectedModules),
+                                              modules: List.from(
+                                                selectedModules,
+                                              ),
                                             );
                                             mockBookings.insert(0, newBooking);
-                                            ScaffoldMessenger.of(context)
-                                                .showSnackBar(
+                                            ScaffoldMessenger.of(
+                                              context,
+                                            ).showSnackBar(
                                               const SnackBar(
                                                 content: Text(
-                                                    'Offert sparad som utkast'),
+                                                  'Offert sparad som utkast',
+                                                ),
                                               ),
                                             );
                                           }
@@ -394,7 +473,9 @@ class _BuildPackagePageState extends State<BuildPackagePage> {
                                     backgroundColor: Colors.deepPurple[400],
                                     foregroundColor: Colors.white,
                                     padding: const EdgeInsets.symmetric(
-                                        vertical: 10, horizontal: 20),
+                                      vertical: 10,
+                                      horizontal: 20,
+                                    ),
                                     shape: RoundedRectangleBorder(
                                       borderRadius: BorderRadius.circular(10),
                                     ),
