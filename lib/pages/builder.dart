@@ -15,6 +15,8 @@ class _BuildPackagePageState extends State<BuildPackagePage> {
   final List<Module> userModules = [];
   final List<String> userCategories = [];
 
+  final ScrollController _scrollController = ScrollController();
+
   List<String> get categories =>
       {...allModules.map((m) => m.category), ...userCategories}.toList();
 
@@ -29,6 +31,12 @@ class _BuildPackagePageState extends State<BuildPackagePage> {
         selectedCategory = selectedModules.first.category;
       }
     }
+    // Starta scroll längst ned när sidan öppnas
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_scrollController.hasClients) {
+        _scrollController.jumpTo(_scrollController.position.maxScrollExtent);
+      }
+    });
   }
 
   Future<Map<String, String>?> _askOfferName() => showDialog<Map<String, String>>(
@@ -67,7 +75,9 @@ class _BuildPackagePageState extends State<BuildPackagePage> {
                 onPressed: () {
                   final t = title.trim();
                   final c = customer.trim();
-                  if (t.isNotEmpty && c.isNotEmpty) Navigator.pop(context, {'title': t, 'customer': c});
+                  if (t.isNotEmpty && c.isNotEmpty) {
+                    Navigator.pop(context, {'title': t, 'customer': c});
+                  }
                 },
                 child: const Text('Spara'),
               ),
@@ -83,15 +93,21 @@ class _BuildPackagePageState extends State<BuildPackagePage> {
         .toList();
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF9F9F9),
+      backgroundColor: Colors.grey[50],
       appBar: AppBar(
+        centerTitle: true,
+        elevation: 0,
+        backgroundColor: Colors.white,
+        foregroundColor: Colors.black87,
         title: Text(
           widget.editingBooking != null ? 'Redigera paket' : 'Bygg paket',
+          style: const TextStyle(fontWeight: FontWeight.w400),
         ),
       ),
       body: Row(
         children: [
           NavigationRail(
+            backgroundColor: Colors.grey[100],
             selectedIndex: categories.indexOf(selectedCategory),
             onDestinationSelected: (index) {
               setState(() {
@@ -99,71 +115,51 @@ class _BuildPackagePageState extends State<BuildPackagePage> {
               });
             },
             labelType: NavigationRailLabelType.all,
+            selectedIconTheme: IconThemeData(color: Colors.deepPurple[400]),
             destinations: categories
                 .map(
                   (cat) => NavigationRailDestination(
-                    icon: const Icon(Icons.folder),
+                    icon: const Icon(Icons.folder_outlined),
+                    selectedIcon: const Icon(Icons.folder),
                     label: Text(cat),
                   ),
                 )
                 .toList(),
-            trailing: Padding(
-              padding: const EdgeInsets.only(bottom: 16.0),
-              child: IconButton(
-                icon: const Icon(Icons.add),
-                tooltip: 'Lägg till kategori',
-                onPressed: () async {
-                  final newCategory = await showDialog<String>(
-                    context: context,
-                    builder: (context) {
-                      String temp = '';
-                      return AlertDialog(
-                        title: const Text('Ny kategori'),
-                        content: TextField(
-                          autofocus: true,
-                          decoration: const InputDecoration(
-                            labelText: 'Kategorinamn',
-                          ),
-                          onChanged: (value) => temp = value,
-                        ),
-                        actions: [
-                          TextButton(
-                            onPressed: () => Navigator.pop(context),
-                            child: const Text('Avbryt'),
-                          ),
-                          ElevatedButton(
-                            onPressed: () {
-                              if (temp.trim().isNotEmpty &&
-                                  !categories.contains(temp.trim())) {
-                                Navigator.pop(context, temp.trim());
-                              }
-                            },
-                            child: const Text('Lägg till'),
-                          ),
-                        ],
-                      );
-                    },
-                  );
-                  if (newCategory != null) {
-                    setState(() {
-                      userCategories.add(newCategory);
-                      selectedCategory = newCategory;
-                    });
-                  }
-                },
-              ),
-            ),
           ),
-          const VerticalDivider(width: 1),
+          const VerticalDivider(width: 1, thickness: 1),
           Expanded(
-            child: Column(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Row(
-                    children: [
-                      ElevatedButton.icon(
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.05),
+                      blurRadius: 6,
+                      offset: const Offset(0, 2),
+                    )
+                  ],
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Add module button
+                    Padding(
+                      padding:
+                          const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      child: ElevatedButton.icon(
                         icon: const Icon(Icons.add),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.deepPurple[400],
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(
+                              vertical: 12, horizontal: 20),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
                         label: const Text('Lägg till modul'),
                         onPressed: () async {
                           String modulNamn = '';
@@ -202,18 +198,14 @@ class _BuildPackagePageState extends State<BuildPackagePage> {
                                   ElevatedButton(
                                     onPressed: () {
                                       final price = double.tryParse(
-                                        prisText.replaceAll(',', '.'),
-                                      );
+                                          prisText.replaceAll(',', '.'));
                                       if (modulNamn.trim().isNotEmpty &&
                                           price != null &&
                                           price > 0) {
                                         Navigator.pop(
                                           context,
-                                          Module(
-                                            modulNamn.trim(),
-                                            selectedCategory,
-                                            price,
-                                          ),
+                                          Module(modulNamn.trim(),
+                                              selectedCategory, price),
                                         );
                                       }
                                     },
@@ -230,106 +222,199 @@ class _BuildPackagePageState extends State<BuildPackagePage> {
                           }
                         },
                       ),
-                    ],
-                  ),
-                ),
-                Expanded(
-                  child: ListView(
-                    children: modules.map((module) {
-                      final isSelected = selectedModules.contains(module);
-                      return ListTile(
-                        title: Text(
-                          '${module.name} (${module.price.toStringAsFixed(0)} kr)',
-                        ),
-                        trailing: isSelected
-                            ? const Icon(Icons.check, color: Colors.green)
-                            : IconButton(
-                                icon: const Icon(Icons.add),
-                                onPressed: () {
-                                  setState(() {
-                                    selectedModules.add(module);
-                                  });
-                                },
-                              ),
-                      );
-                    }).toList(),
-                  ),
-                ),
-                Container(
-                  color: Colors.grey[200],
-                  padding: const EdgeInsets.all(8),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'Valda moduler:',
-                        style: TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                      Wrap(
-                        spacing: 8,
-                        children: selectedModules
-                            .map(
-                              (m) => Chip(
-                                label: Text(
-                                  '${m.name} (${m.price.toStringAsFixed(0)} kr)',
+                    ),
+
+                    // Module list
+                    Expanded(
+                      child: ListView.builder(
+                        padding: const EdgeInsets.symmetric(horizontal: 8),
+                        itemCount: modules.length,
+                        itemBuilder: (context, i) {
+                          final module = modules[i];
+                          final isSelected = selectedModules.contains(module);
+                          return Container(
+                            margin: const EdgeInsets.only(bottom: 6),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(10),
+                              border: Border.all(color: Colors.grey[300]!),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.03),
+                                  blurRadius: 4,
+                                  offset: const Offset(0, 2),
                                 ),
-                                onDeleted: () {
-                                  setState(() {
-                                    selectedModules.remove(m);
-                                  });
-                                },
+                              ],
+                            ),
+                            child: ListTile(
+                              dense: true,
+                              visualDensity:
+                                  const VisualDensity(vertical: -2, horizontal: -1),
+                              title: Text(
+                                '${module.name} (${module.price.toStringAsFixed(0)} kr)',
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.w400,
+                                  fontSize: 14,
+                                ),
                               ),
-                            )
-                            .toList(),
-                      ),
-                      const SizedBox(height: 8),
-                      ElevatedButton(
-                        onPressed: selectedModules.isEmpty
-                            ? null
-                            : () async {
-                                if (widget.editingBooking != null) {
-                                  final updated = Booking(
-                                    id: widget.editingBooking!.id,
-                                    reference: widget.editingBooking!.reference,
-                                    customerName:
-                                        widget.editingBooking!.customerName,
-                                    date: widget.editingBooking!.date,
-                                    status: widget.editingBooking!.status,
-                                    notes: widget.editingBooking!.notes,
-                                    modules: List.from(selectedModules),
-                                    title: widget.editingBooking!.title,
-                                  );
-                                  Navigator.pop(context, updated);
-                                } else {
-                                  final vals = await _askOfferName();
-                                  if (vals == null) return;
-                                  final newBooking = Booking(
-                                    id: DateTime.now().millisecondsSinceEpoch.toString(),
-                                    reference: 'ANT-${DateTime.now().year}-${DateTime.now().millisecondsSinceEpoch % 100000}',
-                                    title: vals['title'] ?? '',
-                                    customerName: vals['customer'] ?? '',
-                                    date: DateTime.now(),
-                                    status: 'Utkast',
-                                    modules: List.from(selectedModules),
-                                  );
-                                  mockBookings.insert(0, newBooking);
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                      content: Text('Offert sparad som utkast'),
+                              trailing: isSelected
+                                  ? const Icon(Icons.check,
+                                      color: Colors.green, size: 20)
+                                  : IconButton(
+                                      icon: const Icon(Icons.add, size: 20),
+                                      onPressed: () {
+                                        setState(() {
+                                          selectedModules.add(module);
+                                        });
+                                        // Hoppa automatiskt till botten
+                                        Future.delayed(
+                                            const Duration(milliseconds: 100),
+                                            () {
+                                          if (_scrollController.hasClients) {
+                                            _scrollController.jumpTo(
+                                                _scrollController
+                                                    .position.maxScrollExtent);
+                                          }
+                                        });
+                                      },
                                     ),
-                                  );
-                                }
-                              },
-                        child: Text(
-                          widget.editingBooking != null
-                              ? 'Spara ändringar'
-                              : 'Spara offert',
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+
+                    // Footer med synlig scroll och börjar längst ned
+                    Container(
+                      decoration: BoxDecoration(
+                        color: Colors.grey[100],
+                        borderRadius: const BorderRadius.vertical(
+                            bottom: Radius.circular(16)),
+                      ),
+                      padding: const EdgeInsets.all(10),
+                      child: ConstrainedBox(
+                        constraints: const BoxConstraints(maxHeight: 160),
+                        child: Scrollbar(
+                          thumbVisibility: true,
+                          radius: const Radius.circular(8),
+                          controller: _scrollController,
+                          child: SingleChildScrollView(
+                            controller: _scrollController,
+                            reverse: true, // börjar längst ned
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text(
+                                  'Valda moduler:',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: 15,
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                Wrap(
+                                  spacing: 4,
+                                  runSpacing: 4,
+                                  children: selectedModules
+                                      .map(
+                                        (m) => Chip(
+                                          labelPadding:
+                                              const EdgeInsets.symmetric(
+                                                  horizontal: 6),
+                                          materialTapTargetSize:
+                                              MaterialTapTargetSize.shrinkWrap,
+                                          labelStyle:
+                                              const TextStyle(fontSize: 12),
+                                          visualDensity: const VisualDensity(
+                                              vertical: -3, horizontal: -3),
+                                          label: Text(
+                                            '${m.name} (${m.price.toStringAsFixed(0)} kr)',
+                                          ),
+                                          onDeleted: () {
+                                            setState(() {
+                                              selectedModules.remove(m);
+                                            });
+                                          },
+                                        ),
+                                      )
+                                      .toList(),
+                                ),
+                                const SizedBox(height: 8),
+                                ElevatedButton(
+                                  onPressed: selectedModules.isEmpty
+                                      ? null
+                                      : () async {
+                                          if (widget.editingBooking != null) {
+                                            final updated = Booking(
+                                              id: widget.editingBooking!.id,
+                                              reference: widget
+                                                  .editingBooking!.reference,
+                                              customerName: widget
+                                                  .editingBooking!.customerName,
+                                              date:
+                                                  widget.editingBooking!.date,
+                                              status: widget
+                                                  .editingBooking!.status,
+                                              notes:
+                                                  widget.editingBooking!.notes,
+                                              modules:
+                                                  List.from(selectedModules),
+                                              title:
+                                                  widget.editingBooking!.title,
+                                            );
+                                            Navigator.pop(context, updated);
+                                          } else {
+                                            final vals = await _askOfferName();
+                                            if (vals == null) return;
+                                            final newBooking = Booking(
+                                              id: DateTime.now()
+                                                  .millisecondsSinceEpoch
+                                                  .toString(),
+                                              reference:
+                                                  'ANT-${DateTime.now().year}-${DateTime.now().millisecondsSinceEpoch % 100000}',
+                                              title: vals['title'] ?? '',
+                                              customerName:
+                                                  vals['customer'] ?? '',
+                                              date: DateTime.now(),
+                                              status: 'Utkast',
+                                              modules:
+                                                  List.from(selectedModules),
+                                            );
+                                            mockBookings.insert(0, newBooking);
+                                            ScaffoldMessenger.of(context)
+                                                .showSnackBar(
+                                              const SnackBar(
+                                                content: Text(
+                                                    'Offert sparad som utkast'),
+                                              ),
+                                            );
+                                          }
+                                        },
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.deepPurple[400],
+                                    foregroundColor: Colors.white,
+                                    padding: const EdgeInsets.symmetric(
+                                        vertical: 10, horizontal: 20),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
+                                  ),
+                                  child: Text(
+                                    widget.editingBooking != null
+                                        ? 'Spara ändringar'
+                                        : 'Spara offert',
+                                    style: const TextStyle(fontSize: 14),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
                         ),
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
-              ],
+              ),
             ),
           ),
         ],

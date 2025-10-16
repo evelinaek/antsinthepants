@@ -87,7 +87,7 @@ class DashboardPage extends StatelessWidget {
           ClipRRect(
             borderRadius: BorderRadius.circular(30),
             child: Image.network(
-              "https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080",
+              "https://images.unsplash.com/photo-1595152772835-219674b2a8a6?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080",
               width: 56,
               height: 56,
               fit: BoxFit.cover,
@@ -99,7 +99,7 @@ class DashboardPage extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const Text(
-                  "Användare-123",
+                  "John Reisen",
                   style: TextStyle(
                     fontWeight: FontWeight.w600,
                     fontSize: 16,

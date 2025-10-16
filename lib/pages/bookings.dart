@@ -14,29 +14,32 @@ class _BookingsPageState extends State<BookingsPage> {
   final TextEditingController _searchController = TextEditingController();
   String _statusFilter = 'Alla';
   List<String> get _statuses => [
-    'Alla',
-    'Utkast',
-    'Skickad',
-    'Bekräftad',
-    'Avbokad',
-  ];
+        'Alla',
+        'Utkast',
+        'Skickad',
+        'Bekräftad',
+        'Avbokad',
+      ];
 
   List<Booking> get _filtered {
     final q = _searchController.text.trim().toLowerCase();
-    return mockBookings.where((b) {
-      final matchesStatus =
-          _statusFilter == 'Alla' || b.status == _statusFilter;
-      final matchesQuery =
-          q.isEmpty ||
-          b.customerName.toLowerCase().contains(q) ||
-          b.reference.toLowerCase().contains(q) ||
-          b.title.toLowerCase().contains(q);
-      return matchesStatus && matchesQuery;
-    }).toList()..sort((a, b) => b.date.compareTo(a.date));
+    return mockBookings
+        .where((b) {
+          final matchesStatus =
+              _statusFilter == 'Alla' || b.status == _statusFilter;
+          final matchesQuery = q.isEmpty ||
+              b.customerName.toLowerCase().contains(q) ||
+              b.reference.toLowerCase().contains(q) ||
+              b.title.toLowerCase().contains(q);
+          return matchesStatus && matchesQuery;
+        })
+        .toList()
+      ..sort((a, b) => b.date.compareTo(a.date));
   }
 
   String _formatDate(DateTime d) =>
       '${d.year.toString().padLeft(4, '0')}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
+
   @override
   void dispose() {
     _searchController.dispose();
@@ -59,16 +62,13 @@ class _BookingsPageState extends State<BookingsPage> {
   }
 
   Future<void> _askSendEmailAndSetStatus(
-    Booking b,
-    String newStatus,
-    String label,
-  ) async {
+      Booking b, String newStatus, String label) async {
     String email = '';
     final ok = await showDialog<bool>(
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: Text('$label - ange epost'),
+          title: Text('$label - ange e-post'),
           content: TextField(
             autofocus: true,
             decoration: const InputDecoration(
@@ -126,8 +126,6 @@ class _BookingsPageState extends State<BookingsPage> {
               title: const Text('Skicka offert'),
               onTap: () async {
                 Navigator.pop(context);
-                // Ask which template to use
-                // Capture a local context to avoid using the widget context after async gaps
                 final c = context;
                 final theme = await showModalBottomSheet<QuoteTheme>(
                   context: c,
@@ -154,14 +152,12 @@ class _BookingsPageState extends State<BookingsPage> {
                   ),
                 );
                 if (theme == null) return;
-                // Show preview and ask to confirm sending
                 final sent = await Navigator.of(c).push<bool>(
                   MaterialPageRoute(
                     builder: (_) => QuotePreviewPage(booking: b, theme: theme),
                   ),
                 );
                 if (sent == true) {
-                  // Ask for email and set status
                   await _askSendEmailAndSetStatus(b, 'Skickad', 'Offert');
                 }
               },
@@ -265,8 +261,16 @@ class _BookingsPageState extends State<BookingsPage> {
   Widget build(BuildContext context) {
     final results = _filtered;
     return Scaffold(
+      backgroundColor: Colors.grey[50],
       appBar: AppBar(
-        title: const Text('Bokningar'),
+        centerTitle: true,
+        elevation: 0,
+        backgroundColor: Colors.white,
+        foregroundColor: Colors.black87,
+        title: const Text(
+          'Bokningar',
+          style: TextStyle(fontWeight: FontWeight.w400),
+        ),
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
@@ -277,7 +281,7 @@ class _BookingsPageState extends State<BookingsPage> {
       body: Column(
         children: [
           Padding(
-            padding: const EdgeInsets.all(12.0),
+            padding: const EdgeInsets.all(16.0),
             child: Row(
               children: [
                 Expanded(
@@ -295,60 +299,113 @@ class _BookingsPageState extends State<BookingsPage> {
                                 setState(() {});
                               },
                             ),
+                      filled: true,
+                      fillColor: Colors.white,
                       border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide:
+                            const BorderSide(color: Colors.transparent),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide:
+                            const BorderSide(color: Colors.transparent),
                       ),
                     ),
                     onChanged: (_) => setState(() {}),
                   ),
                 ),
                 const SizedBox(width: 8),
-                DropdownButton<String>(
-                  value: _statusFilter,
-                  items: _statuses
-                      .map((s) => DropdownMenuItem(value: s, child: Text(s)))
-                      .toList(),
-                  onChanged: (v) => setState(() {
-                    _statusFilter = v ?? 'Alla';
-                  }),
+                Container(
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: Colors.grey[300]!),
+                  ),
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  child: DropdownButtonHideUnderline(
+                    child: DropdownButton<String>(
+                      value: _statusFilter,
+                      items: _statuses
+                          .map((s) => DropdownMenuItem(
+                              value: s,
+                              child: Text(
+                                s,
+                                style: const TextStyle(fontSize: 14),
+                              )))
+                          .toList(),
+                      onChanged: (v) => setState(() {
+                        _statusFilter = v ?? 'Alla';
+                      }),
+                    ),
+                  ),
                 ),
               ],
             ),
           ),
+
+          // Bookings list
           Expanded(
             child: results.isEmpty
                 ? const Center(
-                    child: Text('Inga bokningar matchar din sökning'),
+                    child: Text(
+                      'Inga bokningar matchar din sökning',
+                      style: TextStyle(color: Colors.black54),
+                    ),
                   )
-                : ListView.separated(
+                : ListView.builder(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 8),
                     itemCount: results.length,
-                    separatorBuilder: (_, __) => const Divider(height: 1),
                     itemBuilder: (context, index) {
                       final b = results[index];
-                      return ListTile(
-                        onTap: () => _showDetails(b),
-                        title: Text(
-                          '${b.title.isNotEmpty ? b.title : b.customerName}',
-                        ),
-                        subtitle: Text(
-                          '${b.reference} • ${_formatDate(b.date)}',
-                        ),
-                        trailing: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          crossAxisAlignment: CrossAxisAlignment.end,
-                          children: [
-                            Text(
-                              '${b.total.toStringAsFixed(0)} kr',
-                              style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              b.status,
-                              style: TextStyle(color: _statusColor(b.status)),
-                            ),
+                      return Container(
+                        margin: const EdgeInsets.only(bottom: 12),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: Colors.grey[300]!),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.04),
+                              blurRadius: 6,
+                              offset: const Offset(0, 2),
+                            )
                           ],
+                        ),
+                        child: ListTile(
+                          onTap: () => _showDetails(b),
+                          title: Text(
+                            b.title.isNotEmpty
+                                ? b.title
+                                : b.customerName,
+                            style: const TextStyle(
+                              fontWeight: FontWeight.w400, // ändrad här
+                              fontSize: 15,
+                            ),
+                          ),
+                          subtitle: Text(
+                            '${b.reference} • ${_formatDate(b.date)}',
+                            style: const TextStyle(color: Colors.black54),
+                          ),
+                          trailing: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: [
+                              Text(
+                                '${b.total.toStringAsFixed(0)} kr',
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                b.status,
+                                style:
+                                    TextStyle(color: _statusColor(b.status)),
+                              ),
+                            ],
+                          ),
                         ),
                       );
                     },
