@@ -1,3 +1,5 @@
+import 'package:flutter/material.dart';
+
 class Module {
   final String name;
   final String category;
@@ -71,3 +73,69 @@ final List<Booking> mockBookings = [
     modules: [allModules[5]],
   ),
 ];
+
+
+
+// 🎨 ---- TEMPLATE ----
+class Template {
+  final String id;
+  final String name;
+  final String title;
+  final String introText;
+  final String creatorImage;
+  final bool isDefault;
+  final int? primaryColorValue;
+
+  Template({
+    required this.id,
+    required this.name,
+    required this.title,
+    required this.introText,
+    required this.creatorImage,
+    required this.isDefault,
+    this.primaryColorValue,
+  });
+
+  Template copyWith({
+    String? id,
+    String? name,
+    String? title,
+    String? introText,
+    String? creatorImage,
+    bool? isDefault,
+    int? primaryColorValue,
+  }) {
+    return Template(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      title: title ?? this.title,
+      introText: introText ?? this.introText,
+      creatorImage: creatorImage ?? this.creatorImage,
+      isDefault: isDefault ?? this.isDefault,
+      primaryColorValue: primaryColorValue ?? this.primaryColorValue,
+    );
+  }
+}
+
+// 🔄 Global notifier för templates
+final ValueNotifier<List<Template>> globalTemplates =
+    ValueNotifier<List<Template>>([
+  Template(
+    id: 'default',
+    name: 'Vintermall',
+    title: 'Vår standardmall',
+    introText: 'Detta är en enkel standardmall som används som utgångspunkt.',
+    creatorImage: '',
+    isDefault: true,
+    primaryColorValue: 0xFFB3E5FC,
+  ),
+  Template(
+    id: 'summer',
+    name: 'Sommarmall',
+    title: 'Sommarmall',
+    introText: 'En ljus och luftig mall för sommaroffert.',
+    creatorImage: '',
+    isDefault: false,
+    primaryColorValue: 0xFFBEE7C6,
+  ),
+]);

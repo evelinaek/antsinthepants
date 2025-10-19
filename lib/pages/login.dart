@@ -5,7 +5,7 @@ class LoginPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const Color primaryPurple = Color.fromARGB(255, 90, 83, 177); // samma som "Skapa ny mall"
+    const Color primaryPurple = Color.fromARGB(255, 90, 83, 177); 
 
     return Scaffold(
       backgroundColor: const Color(0xFFF8F9FB),
